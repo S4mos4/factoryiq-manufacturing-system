@@ -64,9 +64,15 @@ def seed(anchor):
             for j in range(7):
                 qty = rng.randint(5, 11) if i%6 == 0 else rng.randint(8, 30)
                 usable += qty
-                run("""INSERT INTO inventory_movements(part_id,kind,quantity,occurred_at)
-                       VALUES (:p,'receive',:q,:t)""",
-                    p=part, q=qty, t=batch_start + timedelta(days=j*4))
+                arrival = batch_start + timedelta(days=j*4)
+                deliveries = [(qty,arrival)]
+                if j < 4:
+                    # Split these deliveries across two shifts while preserving total received units.
+                    first = qty//2
+                    deliveries = [(first,arrival),(qty-first,arrival+timedelta(hours=8))]
+                for delivered,stamp in deliveries:
+                    run("""INSERT INTO inventory_movements(part_id,kind,quantity,occurred_at)
+                           VALUES (:p,'receive',:q,:t)""",p=part,q=delivered,t=stamp)
             for j in range(4):
                 qty = rng.randint(4, 8)
                 t = batch_start + timedelta(days=32+j*7)

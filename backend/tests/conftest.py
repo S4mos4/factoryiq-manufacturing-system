@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
 
-from factoryiq.db import engine
+from factoryiq.db import engine, query
 from factoryiq.main import app
 from factoryiq.seed import seed
 
@@ -39,6 +39,13 @@ def database():
             command.upgrade(Config(str(Path(__file__).resolve().parents[1]/"alembic.ini")),"head")
             assert seed(date(2026,9,24))
             assert not seed(date(2026,9,24))
+            with engine().connect() as conn:
+                counts = query(conn,"""SELECT (SELECT count(*) FROM equipment),
+                    (SELECT count(*) FROM suppliers), (SELECT count(*) FROM parts),
+                    (SELECT count(*) FROM inventory_movements), (SELECT count(*) FROM quality_inspections),
+                    (SELECT count(*) FROM maintenance_work_orders), (SELECT count(*) FROM non_conformance_reports),
+                    (SELECT count(*) FROM sorter_fault_events)""").one()
+                assert tuple(counts)==(20,10,50,1000,500,50,50,5000)
             yield engine()
         finally:
             engine().dispose()

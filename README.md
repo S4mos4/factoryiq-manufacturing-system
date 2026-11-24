@@ -6,6 +6,8 @@ FactoryIQ is a portfolio application for a fictional manufacturing plant. It con
 
 ![FactoryIQ operations dashboard with key metrics, quality trends and downtime](docs/screenshots/dashboard.png)
 
+[Recorded walkthrough](docs/media/factoryiq-demo.webm) · [Mobile dashboard](docs/screenshots/dashboard-mobile.png) · [Supplier quality screenshot](docs/screenshots/supplier-quality.png)
+
 ## Run the demo
 
 Install Docker with Compose, open the repository root, and run:
@@ -16,6 +18,8 @@ docker compose up --build --wait
 ```
 
 Open [FactoryIQ](http://127.0.0.1:8000) or [the interactive API reference](http://127.0.0.1:8000/docs). Browse as a viewer, or use **Operator access** and enter the `FACTORYIQ_OPERATOR_TOKEN` from your local `.env` to exercise writes. The container applies migrations and seeds the fictional plant on first start. To stop it and preserve data, run `docker compose down`.
+
+The recording shows the local read-only instance. Run the commands above for an interactive local instance.
 
 The dataset has 20 machines, 10 suppliers, 50 part types, 1,000 inventory movements, 500 inspections, 50 work orders, 50 non-conformances and 5,000 sorter events. Seed generation fixes the random sequence. A new database can use `python -m factoryiq.seed --anchor YYYY-MM-DD` for fixed timestamps.
 
@@ -56,7 +60,7 @@ Key PostgreSQL features include composite foreign keys, check constraints, parti
 - **EXPLAIN ANALYZE:** On 205,000 synthetic events, median execution was 0.045 ms with the partial fault index and 1.260 ms with the general time index for the measured machine-filtered query.
 - **Dependency audit:** Python and npm checks reported zero known vulnerabilities in the scanned dependency sets.
 
-[Local development and hosting](docs/DEPLOYMENT.md) · [Security review](docs/security_best_practices_report.md) · [Interview guide](INTERVIEW_GUIDE.md) · [SQL practice](docs/SQL_PRACTICE.md) · [Project checkpoint](PROGRESS.md)
+[Verified GitHub Actions run](https://github.com/S4mos4/factoryiq-manufacturing-system/actions/runs/45510255118) · [Local development and hosting](docs/DEPLOYMENT.md) · [Security review](docs/security_best_practices_report.md) · [Interview guide](INTERVIEW_GUIDE.md) · [SQL practice](docs/SQL_PRACTICE.md) · [Project checkpoint](PROGRESS.md)
 
 FactoryIQ is a single-plant portfolio system. It uses a shared demo operator identity, part-level inventory without lot genealogy, and calendar-time availability without shift calendars. The default data volumes suit a demonstration. The sorter analytics depend on recorded trace timing and observed repairs. Public deployment, access policies and production capacity need separate verification.
 

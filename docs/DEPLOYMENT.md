@@ -40,12 +40,11 @@ The Chromium capture script reads a separate clean demo instance from `FACTORYIQ
 
 ## Public demo option
 
-A free Render Docker web service and a separate Neon Free PostgreSQL project can host a synthetic read-only demo, subject to provider usage limits and approval to connect the repository and publish. Render free compute idles after 15 minutes. Render’s own free Postgres expires after 30 days, while Neon’s Free tier offers 1 GB per project. Verify service limits before enabling a public instance. [Render free services](https://render.com/docs/free) · [Neon Free plan](https://neon.com/blog/neon-free-plan-1-gb-per-project)
-
-1. Create a dedicated synthetic Postgres database. Run migrations and seed once through a database owner connection.
+A Render Free Docker web service and an isolated Render Free PostgreSQL instance are one possible short-lived deployment. Free web services can reach Render PostgreSQL over the private network. Disable all external access to PostgreSQL before loading any records. Render free web services idle after 15 minutes and its free databases expire after 30 days. Confirm the free tier and network restrictions before provisioning. [Render free services](https://render.com/docs/free) · [Render private network](https://render.com/docs/private-network)
+1. Create a dedicated synthetic PostgreSQL database with no external IP allowlist entries. Run migrations and seed once through a database owner connection inside the private network.
 2. Use a runtime role with SELECT only on the app schema, and include TLS verification for managed PostgreSQL.
 3. Use the repo Dockerfile. Configure the health check at `/health` and set the service hostname via `FACTORYIQ_ALLOWED_HOSTS`.
 4. Configure `FACTORYIQ_DEMO_READS=true`, `FACTORYIQ_READ_ONLY=true`, `FACTORYIQ_DISABLE_DOCS=true`, `FACTORYIQ_BOOTSTRAP=false` and `FACTORYIQ_SEED=false`. Leave the operator token unset. Set secrets through the host’s secret settings.
 5. Smoke-test the dashboard, filters, a report download and a rejected write through HTTPS. Only share the service URL after verification.
 
-The local read-only demonstration uses the same static build and synthetic data. No paid resources are needed for local review.
+The public release includes a recorded walkthrough and dashboard screenshots. Use Docker Compose for the interactive local demo.

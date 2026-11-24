@@ -15,7 +15,10 @@ for device in sim-conveyor sim-sorter sim-robot sim-hydraulic sim-line sim-motor
 done
 if [ -n "${FACTORYIQ_ESP32_PASSWORD:-}" ]; then
     check_secret "$FACTORYIQ_ESP32_PASSWORD"
-    printf 'esp32-prototype:%s\n' "$FACTORYIQ_ESP32_PASSWORD" >> "$broker_dir/passwords"
+    esp32_id="${FACTORYIQ_ESP32_DEVICE_ID:-esp32-prototype}"
+    printf '%s\n' "$esp32_id" | grep -Eq '^esp32-[a-z0-9][a-z0-9-]{0,32}$' ||
+        { echo 'Invalid ESP32 device identifier.' >&2; exit 1; }
+    printf '%s:%s\n' "$esp32_id" "$FACTORYIQ_ESP32_PASSWORD" >> "$broker_dir/passwords"
 fi
 mosquitto_passwd -U "$broker_dir/passwords"
 cat > "$broker_dir/acl" <<'ACL'

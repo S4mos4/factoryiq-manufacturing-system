@@ -2,6 +2,7 @@ services:
   broker:
     environment:
       FACTORYIQ_MQTT_LAN_TLS: "true"
+      FACTORYIQ_ESP32_DEVICE_ID: ${FACTORYIQ_ESP32_DEVICE_ID:-esp32-prototype}
       FACTORYIQ_ESP32_PASSWORD: ${FACTORYIQ_ESP32_PASSWORD:?Set a separate ESP32 password}
     volumes:
       - "${FACTORYIQ_MQTT_TLS_DIR:?Set TLS directory}:/run/factoryiq-tls:ro"

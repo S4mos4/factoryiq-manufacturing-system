@@ -13,3 +13,6 @@ playwright-report/
 .DS_Store
 
 /.venv/
+
+/hardware/esp32/.pio/
+/hardware/esp32/include/secrets.h

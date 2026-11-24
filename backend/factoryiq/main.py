@@ -3,13 +3,17 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import DataError, IntegrityError
 
+from .analytics import router as analytics
 from .db import engine, query
 from .operations import router as operations
+from .sorter import router as sorter
 from .workflows import router as workflows
 
 app = FastAPI(title="FactoryIQ API", version="1.0.0")
 app.include_router(operations)
 app.include_router(workflows)
+app.include_router(analytics)
+app.include_router(sorter)
 
 
 @app.exception_handler(IntegrityError)

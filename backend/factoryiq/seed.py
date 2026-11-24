@@ -52,7 +52,7 @@ def seed(anchor):
             part = add(
                 "INSERT INTO parts(sku,name,supplier_id,reorder_point) VALUES (:sku,:name,:supplier,:point)",
                 sku=f"PT-{1000+i}", name=f"{('Bearing','Guide rail','Optical bracket','Coupling','Seal')[i%5]} {i//5+1:02}",
-                supplier=suppliers[i%10], point=25 if i%6 == 0 else 12,
+                supplier=suppliers[i%10], point=48 if i%6 == 0 else 12,
             )
             batch_start = today - timedelta(days=70)
             machine = machines[i%20]

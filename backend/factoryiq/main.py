@@ -5,9 +5,11 @@ from sqlalchemy.exc import DataError, IntegrityError
 
 from .db import engine, query
 from .operations import router as operations
+from .workflows import router as workflows
 
 app = FastAPI(title="FactoryIQ API", version="1.0.0")
 app.include_router(operations)
+app.include_router(workflows)
 
 
 @app.exception_handler(IntegrityError)

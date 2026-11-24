@@ -15,8 +15,10 @@ Analysis = Literal["supplier_defects","batch_rejections","maintenance_due","low_
 def date_bounds(start, end):
     end = end or datetime.now(UTC).date()
     earliest, latest = date(1900,1,1), date(2199,12,31)
-    start = start or max(earliest, end-timedelta(days=29)) if end >= earliest else earliest
-    if start<earliest or end>latest or not 0 <= (end-start).days < 366:
+    if not earliest <= end <= latest:
+        raise HTTPException(422,"Choose a date range of 1 to 366 days between 1900 and 2199.")
+    start = start or max(earliest,end-timedelta(days=29))
+    if start<earliest or not 0 <= (end-start).days < 366:
         raise HTTPException(422,"Choose a date range of 1 to 366 days between 1900 and 2199.")
     return datetime.combine(start,time.min,UTC),datetime.combine(end+timedelta(days=1),time.min,UTC)
 

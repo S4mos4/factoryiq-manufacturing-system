@@ -1,4 +1,7 @@
 from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+import os
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import DataError, IntegrityError
@@ -6,6 +9,8 @@ from sqlalchemy.exc import DataError, IntegrityError
 from .analytics import router as analytics
 from .db import engine, query
 from .operations import router as operations
+from .reports import router as reports
+from .security import enabled, is_operator
 from .sorter import router as sorter
 from .workflows import router as workflows
 
@@ -14,6 +19,7 @@ app.include_router(operations)
 app.include_router(workflows)
 app.include_router(analytics)
 app.include_router(sorter)
+app.include_router(reports)
 
 
 @app.exception_handler(IntegrityError)
@@ -43,3 +49,17 @@ def health():
     with engine().connect() as conn:
         query(conn,"SELECT 1")
     return {"status":"ok"}
+
+
+@app.get("/api/session")
+def session(request: Request):
+    operator = is_operator(request)
+    return {"operator_authenticated": operator, "can_read": operator or enabled("FACTORYIQ_DEMO_READS"),
+            "can_write": operator and not enabled("FACTORYIQ_READ_ONLY"),
+            "read_only": enabled("FACTORYIQ_READ_ONLY"),
+            "synthetic": enabled("FACTORYIQ_DEMO_READS")}
+
+
+static_directory = os.getenv("FACTORYIQ_STATIC_DIR")
+if static_directory:
+    app.mount("/", StaticFiles(directory=Path(static_directory),html=True),name="frontend")

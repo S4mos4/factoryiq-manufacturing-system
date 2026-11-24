@@ -147,13 +147,21 @@ def seed(anchor):
                     reason=("Drive alarm","Feed jam","Unplanned stop")[i%3],key=f"demo-stop-{i}-{day}")
         sorter = [e for i,e in enumerate(machines) if i%5 == 4]
         events = []
-        for i in range(5000):
+        for i in range(2450):
             equipment = sorter[i%4]
-            stamp = today - timedelta(days=59) + timedelta(minutes=i*16)
-            fault = rng.choices([None,"LANE_JAM","SENSOR_TIMEOUT","DRIVE_ALARM"],[96,2,1,1])[0]
+            stamp = today - timedelta(days=59) + timedelta(minutes=i*34)
             lane = "A" if i%3 else "B"
-            events.append(dict(e=equipment,key=f"synthetic-{i}",t=stamp,k="jam" if fault=="LANE_JAM" else
-                               "fault" if fault else "entry" if (i//4)%2==0 else "exit",lane=lane,f=fault))
+            code = None
+            if i%49 in (0,17):
+                code = ("LANE_JAM","SENSOR_TIMEOUT","DRIVE_ALARM")[(i//49 + i%49)%3]
+            delay = rng.randint(1200,9000) if code else rng.randint(200,800)
+            events.extend([
+                dict(e=equipment,key=f"synthetic-{i}-entry",t=stamp,k="entry",lane=lane,f=None),
+                dict(e=equipment,key=f"synthetic-{i}-exit",t=stamp+timedelta(milliseconds=delay),k="exit",lane=lane,f=None),
+            ])
+            if code:
+                events.append(dict(e=equipment,key=f"synthetic-{i}-fault",t=stamp+timedelta(seconds=1),
+                                   k="jam" if code=="LANE_JAM" else "fault",lane=lane,f=code))
         from sqlalchemy import text
         conn.execute(text("""INSERT INTO sorter_fault_events(equipment_id,event_key,occurred_at,kind,lane,fault_code)
                              VALUES (:e,:key,:t,:k,:lane,:f)"""),events)

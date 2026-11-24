@@ -25,6 +25,7 @@ services:
       FACTORYIQ_OPERATOR_TOKEN: ${FACTORYIQ_OPERATOR_TOKEN:-}
       FACTORYIQ_DEMO_READS: ${FACTORYIQ_DEMO_READS:-true}
       FACTORYIQ_READ_ONLY: ${FACTORYIQ_READ_ONLY:-false}
+      FACTORYIQ_SIMULATE: ${FACTORYIQ_SIMULATE:-true}
       FACTORYIQ_ALLOWED_HOSTS: localhost,127.0.0.1,app
     ports:
       - "127.0.0.1:${FACTORYIQ_HOST_PORT:-8000}:8000"
@@ -40,8 +41,8 @@ services:
     volumes:
       - "./mqtt/start.sh:/factoryiq/start.sh:ro"
     environment:
-      FACTORYIQ_MQTT_BRIDGE_PASSWORD: ${FACTORYIQ_MQTT_BRIDGE_PASSWORD:?Run scripts/init-local-env.sh}
-      FACTORYIQ_MQTT_DEVICE_SECRET: ${FACTORYIQ_MQTT_DEVICE_SECRET:?Run scripts/init-local-env.sh}
+      FACTORYIQ_MQTT_BRIDGE_PASSWORD: ${FACTORYIQ_MQTT_BRIDGE_PASSWORD:-}
+      FACTORYIQ_MQTT_DEVICE_SECRET: ${FACTORYIQ_MQTT_DEVICE_SECRET:-}
   telemetry:
     profiles: ["iot"]
     build: .
@@ -54,8 +55,8 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://factoryiq:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@database/factoryiq
       FACTORYIQ_MQTT_HOST: broker
-      FACTORYIQ_MQTT_BRIDGE_PASSWORD: ${FACTORYIQ_MQTT_BRIDGE_PASSWORD:?Run scripts/init-local-env.sh}
-      FACTORYIQ_MQTT_DEVICE_SECRET: ${FACTORYIQ_MQTT_DEVICE_SECRET:?Run scripts/init-local-env.sh}
+      FACTORYIQ_MQTT_BRIDGE_PASSWORD: ${FACTORYIQ_MQTT_BRIDGE_PASSWORD:-}
+      FACTORYIQ_MQTT_DEVICE_SECRET: ${FACTORYIQ_MQTT_DEVICE_SECRET:-}
       FACTORYIQ_SIMULATE: ${FACTORYIQ_SIMULATE:-true}
       FACTORYIQ_READ_ONLY: ${FACTORYIQ_READ_ONLY:-false}
 

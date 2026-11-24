@@ -10,6 +10,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .analytics import router as analytics
 from .db import engine, query
+from .iot.api import router as monitoring
 from .middleware import LimitApiBody
 from .operations import router as operations
 from .reports import router as reports
@@ -25,7 +26,7 @@ app.add_middleware(LimitApiBody)
 allowed_hosts = os.getenv("FACTORYIQ_ALLOWED_HOSTS")
 if allowed_hosts:
     app.add_middleware(TrustedHostMiddleware,allowed_hosts=[host.strip() for host in allowed_hosts.split(",")])
-for router in (operations,workflows,analytics,sorter,reports):
+for router in (operations,workflows,analytics,sorter,reports,monitoring):
     app.include_router(router)
 
 
@@ -53,7 +54,7 @@ async def security_headers(request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
     if path.startswith("/api"):
-        response.headers["Cache-Control"] = "no-store"
+        response.headers.setdefault("Cache-Control", "no-store")
     if path in {"/","/index.html"}:
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "

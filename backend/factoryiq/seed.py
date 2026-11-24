@@ -161,16 +161,18 @@ def seed(anchor):
             if i%49 in (0,17):
                 code = ("LANE_JAM","SENSOR_TIMEOUT","DRIVE_ALARM")[(i//49 + i%49)%3]
             delay = rng.randint(1200,9000) if code else rng.randint(200,800)
+            outcome = "jam_recovered" if code=="LANE_JAM" else "fault_recovered" if code else "sorted"
             events.extend([
-                dict(e=equipment,key=f"synthetic-{i}-entry",t=stamp,k="entry",lane=lane,f=None),
-                dict(e=equipment,key=f"synthetic-{i}-exit",t=stamp+timedelta(milliseconds=delay),k="exit",lane=lane,f=None),
+                dict(e=equipment,key=f"synthetic-{i}-entry",t=stamp,k="entry",lane=lane,f=None,o=None,ms=None),
+                dict(e=equipment,key=f"synthetic-{i}-exit",t=stamp+timedelta(milliseconds=delay),
+                     k="exit",lane=lane,f=None,o=outcome,ms=delay),
             ])
             if code:
                 events.append(dict(e=equipment,key=f"synthetic-{i}-fault",t=stamp+timedelta(seconds=1),
-                                   k="jam" if code=="LANE_JAM" else "fault",lane=lane,f=code))
+                                   k="jam" if code=="LANE_JAM" else "fault",lane=lane,f=code,o=None,ms=None))
         from sqlalchemy import text
-        conn.execute(text("""INSERT INTO sorter_fault_events(equipment_id,event_key,occurred_at,kind,lane,fault_code)
-                             VALUES (:e,:key,:t,:k,:lane,:f)"""),events)
+        conn.execute(text("""INSERT INTO sorter_fault_events(equipment_id,event_key,occurred_at,kind,lane,fault_code,processing_outcome,processing_ms)
+                             VALUES (:e,:key,:t,:k,:lane,:f,:o,:ms)"""),events)
     return True
 
 

@@ -22,7 +22,7 @@ Operator writes use `Authorization: Bearer <local token>`. The demo-read flag al
 
 ## Sorter upload
 
-POST `/api/sorter/imports?equipment_id=5&anchor=2026-11-24T14%3A00%3A00Z&filename=synthetic-trace.csv` with an operator token, content type `text/csv`, and the file as the request body. The anchor is the UTC instant corresponding to simulation offset zero. Limits are 512 KiB and 10,000 source rows. The importer queues each lane independently with capacity 16. It checks for a wait of at least 1,000 ms before applying each event and logs one jam per package. An observed later exit closes the simulated stop. An unresolved jam is counted as a fault and has no measured repair time.
+POST `/api/sorter/imports?equipment_id=5&anchor=2026-11-24T14%3A00%3A00Z&filename=synthetic-trace.csv` with an operator token, content type `text/csv`, and the file as the request body. The anchor is the UTC instant corresponding to simulation offset zero. Limits are 512 KiB and 10,000 source rows. The importer queues each lane independently with capacity 16. It checks for a wait of at least 1,000 ms before applying each event and logs one jam per package. An observed later exit closes the simulated stop. Exit rows show transit time in milliseconds and distinguish a normal sort from jam recovery. An unresolved jam is counted as a fault and has no measured repair time.
 
 The existing [Warehouse Sorter and Fault Logger](https://github.com/S4mos4/warehouse-sorter) example trace was accepted in a real PostgreSQL smoke test. Valid retries deduplicate by equipment, UTC anchor and exact content hash. A different anchor represents a separate run, and differently encoded files have different hashes.
 

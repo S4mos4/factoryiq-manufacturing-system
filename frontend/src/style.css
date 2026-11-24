@@ -220,3 +220,11 @@ dialog::backdrop { background:#101b32a3; }
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; }
 }
+
+@media(max-width:700px) {
+  .main-shell, .workspace-panel, .table-wrap, .breadcrumbs { min-width:0; }
+  .main-shell, .table-scroll { max-width:100%; }
+  .topbar { height:auto; min-height:61px; flex-wrap:wrap; gap:4px 8px; }
+  .top-actions, footer { flex-wrap:wrap; }
+  .breadcrumbs strong, footer { overflow-wrap:anywhere; }
+}

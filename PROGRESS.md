@@ -15,3 +15,5 @@ Phase 6 complete. 16 PostgreSQL-backed Pytest cases and 6 Chromium workflows pas
 Phase 7 complete. Local and Docker setup, deployment configuration, architecture and ERD, REST reference, security notes, interview guide, SQL practice, three inspected browser screenshots, and local recording are ready. Render/Neon hosting is documented and awaits publishing approval.
 
 Phase 8 handoff. Private GitHub repository created at https://github.com/S4mos4/factoryiq-manufacturing-system. FactoryIQ portfolio card and case study prepared in a separate local branch of the existing buildless Site and browser-checked on desktop and mobile. LinkedIn entry and announcement are in docs/LINKEDIN.md. Public GitHub visibility, portfolio deployment, public demo hosting and LinkedIn posting await approval.
+
+Final verification updates added exit outcome and transit duration to sorter telemetry, validated all clean-seed record counts, and adjusted the mobile layout after the hosted Chromium run found overflow on Linux. The initial Actions run successfully built and started Compose. The final run verifies the current commit.

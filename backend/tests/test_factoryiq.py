@@ -86,6 +86,9 @@ def test_import_duplicate_and_jam_reconstruction(client,database,headers):
     assert import_csv(client,headers).json()["outcome"]=="duplicate"
     with database.connect() as conn:
         assert query(conn,"SELECT count(*) FROM sorter_fault_events WHERE import_id IS NOT NULL AND equipment_id=5").scalar()==5
+        outcome = query(conn,"""SELECT processing_outcome,processing_ms FROM sorter_fault_events
+                                WHERE import_id IS NOT NULL AND equipment_id=5 AND kind='exit'""").one()
+        assert tuple(outcome)==("jam_recovered",3000)
         assert query(conn,"SELECT extract(epoch FROM ended_at-started_at) FROM downtime_events WHERE reason='Sorter lane jam' AND equipment_id=5").scalar()==2
 
 

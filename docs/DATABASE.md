@@ -7,8 +7,8 @@ erDiagram
     equipment_types ||--o{ equipment : classifies
     facility_locations ||--o{ equipment : houses
     suppliers ||--o{ parts : supplies
-    equipment ||--o{ production_batches : produces
-    parts ||--o{ production_batches : identifies
+    equipment ||--o{ production_batches : makes
+    parts ||--o{ production_batches : part
     parts ||--o| inventory_balances : tracks
     parts ||--o{ inventory_movements : records
     parts ||--o{ inventory_reservations : allocates
@@ -24,10 +24,10 @@ erDiagram
     equipment ||--o{ maintenance_work_orders : serviced
     equipment ||--o{ calibration_records : calibrated
     equipment ||--o{ downtime_events : interrupted
-    equipment ||--o{ import_history : receives
+    equipment ||--o{ import_history : machine
     equipment ||--o{ sorter_fault_events : emits
     import_history o|--o{ sorter_fault_events : groups
-    users ||--o{ import_history : submits
+    users ||--o{ import_history : user
     users ||--o{ audit_logs : acts
 ```
 

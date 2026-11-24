@@ -15,7 +15,12 @@ const lookupField = (key:string,title:string,options:RecordRow[],initial?:unknow
     String(r.id),[r.code??r.sku,r.name??r.username].filter(Boolean).join(' · '),
   ]),
 });
-const columns=(...keys:string[]):Column[]=>keys.map(key=>({key}));
+const columns=(...keys:string[]):Column[]=>keys.map(key=>{
+  if (key==='defect_rate'||key==='rejection_rate'||key==='rolling_rate') {
+    return {key,render:r=>r[key]==null?'—':text(r[key])+'%'};
+  }
+  return {key};
+});
 const status=(key='status'):Column=>({key,render:r=><Badge value={r[key]}/>});
 const timeCol=(key:string):Column=>({key,render:r=>timestamp(r[key])});
 const match = (r:RecordRow,key:string,value:unknown) => String(r[key])===String(value);
@@ -178,6 +183,8 @@ export function Workspace({page,token,lookup,canWrite,version,refresh}:WorkProps
     content=<Panel title="Simulation telemetry">{tabs([['events','Recent events'],['faults','Faults only'],['imports','Import history']],active)}
       {active==='imports' ? list('/sorter/imports',[...columns('filename','equipment'),timeCol('anchor_at'),status('outcome'),...columns('row_count','error')]) :
         list('/sorter/events?faults_only='+(active==='faults'),[timeCol('occurred_at'),...columns('equipment'),status('kind'),...columns('lane','fault_code'),
+          {key:'processing_outcome',title:'Processing outcome',render:r=>r.processing_outcome?label(r.processing_outcome):'—'},
+          {key:'processing_ms',title:'Transit (ms)'},
           {key:'synthetic',title:'Source',render:r=>r.synthetic?'Synthetic seed':'Simulation trace'}])}</Panel>;
   } else if(page==='analytics') {
     const queries:Record<string,[string,string[]]>={

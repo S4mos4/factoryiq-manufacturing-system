@@ -54,11 +54,14 @@ def parse_trace(raw, anchor):
                 if package["jam"] is None:
                     package["jam"] = stamp
                     events.append(dict(key=f"jam-{package['line']}",time=stamp,kind="jam",lane=lane_name,fault="LANE_JAM"))
-        events.append(dict(key=f"row-{line}",time=stamp,kind=kind.lower(),lane=lane or None,fault=None))
+        event = dict(key=f"row-{line}",time=stamp,kind=kind.lower(),lane=lane or None,fault=None)
+        events.append(event)
         if kind == "ENTRY":
             lanes[lane].append(dict(entered=elapsed,line=line,jam=None))
         elif kind == "EXIT":
             package = lanes[lane].popleft()
+            event["processing_ms"] = elapsed-package["entered"]
+            event["outcome"] = "jam_recovered" if package["jam"] is not None else "sorted"
             if package["jam"] is not None and package["jam"] < stamp:
                 stops.append(dict(key=f"jam-{package['line']}",start=package["jam"],end=stamp))
     if not events:
@@ -92,9 +95,11 @@ def save_import(raw, equipment_id, anchor, filename, actor):
         try:
             with conn.begin_nested():
                 result = history("imported",count)
-                conn.execute(text("""INSERT INTO sorter_fault_events(equipment_id,import_id,event_key,occurred_at,kind,lane,fault_code)
-                                     VALUES (:e,:i,:key,:time,:kind,:lane,:fault)"""),
-                             [dict(row,e=equipment_id,i=result["id"],key=f"{run_key}/{row['key']}") for row in events])
+                conn.execute(text("""INSERT INTO sorter_fault_events(equipment_id,import_id,event_key,occurred_at,kind,lane,fault_code,
+                                                                  processing_outcome,processing_ms)
+                                     VALUES (:e,:i,:key,:time,:kind,:lane,:fault,:outcome,:processing_ms)"""),
+                             [{"outcome":None,"processing_ms":None,**row,"e":equipment_id,"i":result["id"],
+                               "key":f"{run_key}/{row['key']}"} for row in events])
                 if stops:
                     conn.execute(text("""INSERT INTO downtime_events(equipment_id,started_at,ended_at,reason,source_key)
                                          VALUES (:e,:start,:end,'Sorter lane jam',:key)"""),
@@ -130,7 +135,7 @@ def imports():
 @router.get("/events")
 def events(equipment_id: PositiveId | None = None, faults_only: bool = False):
     with engine().connect() as conn:
-        return rows(conn,"""SELECT s.id,s.occurred_at,s.kind,s.lane,s.fault_code,e.code AS equipment,
+        return rows(conn,"""SELECT s.id,s.occurred_at,s.kind,s.lane,s.fault_code,s.processing_outcome,s.processing_ms,e.code AS equipment,
                             s.import_id IS NULL AS synthetic FROM sorter_fault_events s JOIN equipment e ON e.id=s.equipment_id
                             WHERE (CAST(:e AS integer) IS NULL OR s.equipment_id=:e)
                               AND (NOT :only OR s.fault_code IS NOT NULL)

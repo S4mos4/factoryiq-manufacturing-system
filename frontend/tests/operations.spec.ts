@@ -30,6 +30,15 @@ test('overview uses equipment and date filters, and mobile navigation is usable'
   await page.getByRole('button',{name:'Open menu'}).click();
   await nav(page,'Equipment');
   await expect(page.getByRole('heading',{name:'Equipment registry'})).toBeVisible();
+  await expect(page.getByRole('textbox',{name:'Search records'})).toBeVisible();
+  const overflow = await page.evaluate(()=>{
+    if (document.documentElement.scrollWidth<=window.innerWidth) return [];
+    return Array.from(document.querySelectorAll('body *'))
+      .filter(el=>!el.closest('.table-scroll') && el.getBoundingClientRect().right>window.innerWidth)
+      .slice(0,10)
+      .map(el=>el.tagName+' '+el.getAttribute('class'));
+  });
+  expect(overflow).toEqual([]);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
 

@@ -205,7 +205,7 @@ export function Workspace({page,token,lookup,canWrite,version,refresh}:WorkProps
   return <>
     <div className="page-intro workspace-intro"><div><div className="eyebrow"><span/> PLANT WORKSPACE</div><h1>{title}</h1><p>{description}</p></div>
       {create&&canWrite&&<button className="button primary" onClick={create}>{page==='sorter'?<Upload size={17}/>:<Plus size={17}/>} {createLabel}</button>}</div>
-    {notice&&<div role="status" className="notice"><ClipboardList size={17}/>{notice}<button onClick={()=>setNotice('')} aria-label="Dismiss notice">Dismiss</button></div>}
+    {notice&&<div role="status" className="notice"><ClipboardList size={17}/><span>{notice}</span><button onClick={()=>setNotice('')} aria-label="Dismiss notice">Dismiss</button></div>}
     <Feedback error={error}/>{content}{details}
     {form&&<Modal title={form.title} close={()=>setForm(undefined)}><Fields fields={form.fields} close={()=>setForm(undefined)} submit={async data=>{
       await api(form.path,token,json(form.method??'POST',form.transform?form.transform(data):payload(data)));

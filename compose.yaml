@@ -1,0 +1,37 @@
+services:
+  database:
+    image: postgres:17.12-bookworm@sha256:1eff563f6c868b9b433566e9f3cf6e5c79fbd3b95bf70ec7277d376cdbfc50d7
+    environment:
+      POSTGRES_DB: factoryiq
+      POSTGRES_USER: factoryiq
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      TZ: UTC
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U factoryiq -d factoryiq"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  app:
+    build: .
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://factoryiq:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@database/factoryiq
+      FACTORYIQ_BOOTSTRAP: "true"
+      FACTORYIQ_SEED: "true"
+      FACTORYIQ_OPERATOR_TOKEN: ${FACTORYIQ_OPERATOR_TOKEN:-}
+      FACTORYIQ_DEMO_READS: ${FACTORYIQ_DEMO_READS:-true}
+      FACTORYIQ_READ_ONLY: ${FACTORYIQ_READ_ONLY:-false}
+      FACTORYIQ_ALLOWED_HOSTS: localhost,127.0.0.1,app
+    ports:
+      - "127.0.0.1:${FACTORYIQ_HOST_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+volumes:
+  postgres_data:

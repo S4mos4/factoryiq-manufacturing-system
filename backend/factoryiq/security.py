@@ -1,32 +1,42 @@
 import os
 from secrets import compare_digest
+from typing import Annotated
 
-from fastapi import HTTPException, Request
+from fastapi import Depends, HTTPException, Security
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from .db import engine, one
+
+bearer_scheme = HTTPBearer(auto_error=False, scheme_name="OperatorToken")
 
 
 def enabled(name):
     return os.getenv(name, "").lower() == "true"
 
 
-def is_operator(request):
-    scheme, _, provided = request.headers.get("authorization", "").partition(" ")
+def is_operator(credentials: Annotated[HTTPAuthorizationCredentials | None, Security(bearer_scheme)]):
     expected = os.getenv("FACTORYIQ_OPERATOR_TOKEN", "")
-    return (scheme.lower() == "bearer" and len(expected) >= 24
-            and compare_digest(provided.encode(), expected.encode()))
+    return bool(credentials and len(expected) >= 24 and
+                compare_digest(credentials.credentials.encode(), expected.encode()))
 
 
-def read_access(request: Request):
-    if not (enabled("FACTORYIQ_DEMO_READS") or is_operator(request)):
-        raise HTTPException(401, "Viewer access requires an operator token on this instance.")
+Operator = Annotated[bool, Depends(is_operator)]
 
 
-def write_access(request: Request):
+def unauthorized(message):
+    raise HTTPException(401, message, headers={"WWW-Authenticate":"Bearer"})
+
+
+def read_access(operator: Operator):
+    if not (enabled("FACTORYIQ_DEMO_READS") or operator):
+        unauthorized("Viewer access requires an operator token on this instance.")
+
+
+def write_access(operator: Operator):
     if enabled("FACTORYIQ_READ_ONLY"):
         raise HTTPException(403, "This instance is read-only.")
-    if not is_operator(request):
-        raise HTTPException(401, "A valid operator token is required.")
+    if not operator:
+        unauthorized("A valid operator token is required.")
     with engine().connect() as conn:
         actor = one(conn, "SELECT id FROM users WHERE username='Demo operator' AND role='operator'")
     if not actor:

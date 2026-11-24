@@ -93,11 +93,11 @@ export function Fields({fields,submit,close,button='Save',children}: {
   return <form className="dialog-body" onSubmit={save}>
     <div className="form-grid">{fields.map(field=><label key={field.key} className={field.type==='textarea'?'full-field':undefined}>
       {field.title}
-      {field.choices ? <select name={field.key} defaultValue={field.initial??''} required={!field.optional}>
+      {field.choices ? <select aria-label={field.title} name={field.key} defaultValue={field.initial??''} required={!field.optional}>
         <option value="">{field.optional?'None':'Select…'}</option>
         {field.choices.map(([value,title])=><option key={value} value={value}>{title}</option>)}
-      </select> : field.type==='textarea' ? <textarea name={field.key} defaultValue={field.initial} required={!field.optional} maxLength={2000}/>
-        : <input name={field.key} type={field.type||'text'} defaultValue={field.initial} required={!field.optional}
+      </select> : field.type==='textarea' ? <textarea aria-label={field.title} name={field.key} defaultValue={field.initial} required={!field.optional} maxLength={2000}/>
+        : <input aria-label={field.title} name={field.key} type={field.type||'text'} defaultValue={field.initial} required={!field.optional}
           maxLength={field.type==='password'?256:120} min={field.type==='number'&&field.key==='quantity'?1:undefined}
           step={field.type==='number'?'any':undefined} /> }
     </label>)}</div>

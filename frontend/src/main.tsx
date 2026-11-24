@@ -9,6 +9,8 @@ import './style.css';
 
 const Dashboard = lazy(() => import('./Dashboard').then(module => ({default:module.Dashboard})));
 
+const Monitoring = lazy(() => import('./Monitoring').then(module => ({default:module.Monitoring})));
+
 const pages = [
   {key:'dashboard',name:'Overview',icon:LayoutDashboard},
   {key:'equipment',name:'Equipment',icon:Factory},
@@ -19,6 +21,7 @@ const pages = [
   {key:'sorter',name:'Sorter events',icon:Radar},
   {key:'analytics',name:'SQL analytics',icon:ChartNoAxesCombined},
   {key:'reports',name:'Reports',icon:FileDown},
+  {key:'monitoring',name:'Live monitoring',icon:Activity},
 ] as const;
 
 function App() {
@@ -58,7 +61,7 @@ function App() {
       <Feedback error={error} loading={!session&&!error}/>
       {session&&!session.can_read&&<div className="card restricted"><KeyRound size={25}/><h1>Operator access required</h1>
         <p>Enter the operator token to open this workspace.</p><button className="button primary" onClick={()=>setLogin(true)}>Enter token</button></div>}
-      {session?.can_read&&<Content page={page} token={token} session={session} version={version} refresh={()=>refresh(v=>v+1)}/>}
+      {session?.can_read&&<Content page={page} token={token} session={session} version={version} navigate={navigate} refresh={()=>refresh(v=>v+1)}/>}
     </main>
     <footer><Activity size={15}/> FactoryIQ <span>·</span> Manufacturing intelligence &amp; quality management</footer>
     </div>
@@ -71,10 +74,11 @@ function App() {
   </div>;
 }
 
-function Content({page,token,session,version,refresh}: {
-  page:string;token:string;session:Session;version:number;refresh:()=>void;
+function Content({page,token,session,version,refresh,navigate}: {
+  page:string;token:string;session:Session;version:number;refresh:()=>void;navigate:(page:string)=>void;
 }) {
   const lookup=useData<Record<string,RecordRow[]>>('/lookups',token,version);
+  if(page==='monitoring') return <Suspense fallback={<Feedback loading/>}><Monitoring token={token} canWrite={session.can_write} navigate={navigate}/></Suspense>;
   if(page==='dashboard') return <Suspense fallback={<Feedback loading/>}><Dashboard token={token} machines={lookup.data?.equipment??[]} version={version}/></Suspense>;
   if(!lookup.data) return <Feedback error={lookup.error} loading={!lookup.error}/>;
   return <Workspace key={page} page={page} token={token} lookup={lookup.data} canWrite={session.can_write} version={version} refresh={refresh}/>;

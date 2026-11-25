@@ -145,8 +145,9 @@ def wait_until(predicate,seconds=8):
 
 @pytest.fixture
 def broker(tmp_path):
-    if not shutil.which("mosquitto") or not shutil.which("mosquitto_passwd"):
-        pytest.skip("Install the Eclipse Mosquitto server to run broker integration.")
+    docker = os.getenv("FACTORYIQ_TEST_MQTT_DOCKER")=="true"
+    if not docker and (not shutil.which("mosquitto") or not shutil.which("mosquitto_passwd")):
+        pytest.skip("Install Mosquitto or enable the Docker test broker.")
     with socket.socket() as local:
         local.bind(("127.0.0.1",0))
         port=local.getsockname()[1]
@@ -154,20 +155,35 @@ def broker(tmp_path):
     env={**os.environ,"FACTORYIQ_MQTT_PORT":str(port),"FACTORYIQ_MQTT_BIND":"127.0.0.1","TMPDIR":str(tmp_path),
          "FACTORYIQ_MQTT_BRIDGE_PASSWORD":password,"FACTORYIQ_MQTT_DEVICE_SECRET":secret}
     script=Path(__file__).resolve().parents[2]/"mqtt"/"start.sh"
-    with (tmp_path/"broker.log").open("w") as log:
-        proc=subprocess.Popen(["sh",str(script)],env=env,stdout=log,stderr=log)
+    log_path=tmp_path/"broker.log"
+    name=f"factoryiq-mqtt-test-{uuid4().hex}"
+    if docker:
+        command=["docker","run","--rm","--name",name,"--publish",f"127.0.0.1:{port}:1883",
+                 "--volume",f"{script}:/factoryiq/start.sh:ro",
+                 "--env","FACTORYIQ_MQTT_BRIDGE_PASSWORD","--env","FACTORYIQ_MQTT_DEVICE_SECRET",
+                 "--entrypoint","sh","eclipse-mosquitto:2.0.22","/factoryiq/start.sh"]
+    else:
+        command=["sh",str(script)]
+    with log_path.open("w") as log:
+        proc=subprocess.Popen(command,env=env,stdout=log,stderr=log)
         try:
             def accessible():
                 try:
                     with socket.create_connection(("127.0.0.1",port),timeout=0.1):
                         return True
                 except OSError:
+                    if proc.poll() is not None:
+                        pytest.fail("Test broker failed to start: "+log_path.read_text()[-1600:])
                     return False
-            wait_until(accessible)
+            wait_until(accessible,60 if docker else 8)
             yield port,password,secret
         finally:
-            proc.terminate()
-            proc.wait(timeout=5)
+            if docker:
+                subprocess.run(["docker","stop","--time","3",name],check=False,
+                               stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=10)
+            if proc.poll() is None:
+                proc.terminate()
+            proc.wait(timeout=10)
 
 
 def test_real_mqtt_ingestion_acl_and_reconnection(stations,broker):

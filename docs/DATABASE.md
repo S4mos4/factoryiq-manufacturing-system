@@ -38,3 +38,22 @@ erDiagram
 - Unique reservation request keys and partial unique movement indexes prevent duplicate reserve or close entries. An active reservation can close once by consumption or release.
 - Sorter events use a unique machine/event key. Imports have a unique successful run per machine, file checksum and anchor. Failed and duplicate attempts appear in history.
 - Audit entity references are typed by the `entity` label and stored with an ID so one audit stream can represent different relations. `demo_seed` is a standalone initialization marker.
+
+
+## V2 telemetry relations
+
+```mermaid
+erDiagram
+    equipment ||--o{ iot_devices : instrumented_by
+    iot_devices ||--o{ iot_readings : publishes
+    iot_devices ||--o{ iot_connections : tracks
+    iot_devices ||--o{ iot_thresholds : configures
+    iot_devices ||--o{ iot_alarms : raises
+    iot_devices ||--o| iot_simulation_controls : simulates
+    iot_alarms ||--o{ iot_alarm_history : records
+    maintenance_work_orders o|--o{ iot_alarms : addresses
+    users o|--o{ iot_alarms : acknowledges
+    users o|--o{ iot_alarm_history : changes
+```
+
+The primary key of readings is device and observation time. A separate uniqueness constraint covers device and message UUID. The latest timestamp points to the current reading. A BRIN time index provides a compact alternative for cross-device time scans. A partial unique index permits only one open alarm per device and code. The gateway serializes writes per device for duplicate, overlap and current-state checks. See [telemetry migration SQL](../backend/migrations/versions/004_iot_telemetry.sql) and [query plans](iot-benchmark-plans.json).

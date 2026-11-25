@@ -19,3 +19,10 @@ Phase 8 handoff. Private GitHub repository created at https://github.com/S4mos4/
 Final verification updates added exit outcome and transit duration to sorter telemetry, validated all clean-seed record counts, and adjusted the mobile layout after the hosted Chromium run found overflow on Linux. The initial Actions run successfully built and started Compose. The final run verifies the current commit.
 
 Release audit verified the remote history, the CI run for the application code and the archived benchmark. The release adds the recorded synthetic walkthrough as public demo media.
+
+## V2 checkpoint
+
+- Added the IoT migration, Mosquitto/Paho bridge, six simulated stations, authenticated fault and alarm actions, a live production-line twin, time-series charts, and native SQL analytics.
+- Local checks passed 24 Pytest cases and seven Chromium workflows. The ESP32 firmware compiled for `esp32dev`; physical wiring, calibration and hardware connectivity still need bench tests.
+- Recorded 500 validated inserts in 0.3316 s and an indexed history median of 0.114 ms on 200,500 rows. [Recorded method and plans](docs/V2-PERFORMANCE.md).
+- V2 sources and screenshots are ready for GitHub verification. Portfolio and LinkedIn drafts and updated video require separate publication approval.

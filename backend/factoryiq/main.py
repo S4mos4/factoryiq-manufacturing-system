@@ -19,7 +19,7 @@ from .sorter import router as sorter
 from .workflows import router as workflows
 
 docs = not enabled("FACTORYIQ_DISABLE_DOCS")
-app = FastAPI(title="FactoryIQ API", version="1.0.0",
+app = FastAPI(title="FactoryIQ API", version="2.0.0",
               docs_url="/docs" if docs else None, redoc_url="/redoc" if docs else None,
               openapi_url="/openapi.json" if docs else None)
 app.add_middleware(LimitApiBody)

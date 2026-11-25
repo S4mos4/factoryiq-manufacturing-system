@@ -4,6 +4,21 @@
 
 FactoryIQ is a portfolio application for a fictional manufacturing plant. It connects equipment status, stock control, inspection outcomes, corrective actions, maintenance, and sorter simulation telemetry in one PostgreSQL-backed workspace.
 
+## V2 industrial IoT
+
+V2 adds six simulated stations, scoped MQTT ingestion, live telemetry, a production-line digital twin, operator-controlled fault injection, an alarm lifecycle and explainable condition monitoring. SQL reports observed OEE, throughput, energy, downtime and repair metrics. The ESP32 bench firmware compiles for the documented board. Physical connection and calibration remain pending.
+
+![FactoryIQ V2 digital twin with synthetic equipment and live telemetry](docs/screenshots/v2-live-monitoring.png)
+
+```sh
+sh scripts/init-local-env.sh
+docker compose --profile iot up --build --wait
+```
+
+Choose **Live monitoring** in the application. [V2 architecture and operation](docs/V2-IOT.md) · [Performance results](docs/V2-PERFORMANCE.md) · [ESP32 firmware and wiring](hardware/esp32/README.md) · [Fault screenshot](docs/screenshots/v2-fault-monitoring.png)
+
+## V1 manufacturing workspace
+
 ![FactoryIQ operations dashboard with key metrics, quality trends and downtime](docs/screenshots/dashboard.png)
 
 [Recorded walkthrough](docs/media/factoryiq-demo.webm) · [Mobile dashboard](docs/screenshots/dashboard-mobile.png) · [Supplier quality screenshot](docs/screenshots/supplier-quality.png)
@@ -66,4 +81,4 @@ FactoryIQ is a single-plant portfolio system. It uses a shared demo operator ide
 
 ## AI assistance
 
-The project brief, intended workflows and portfolio goals came from the project owner. Codex authored the initial application, schema, SQL, tests, documentation and project media and ran the verification reported here. The interview guide identifies code for the owner to review, reproduce and modify before claiming personal implementation or verification.
+The project brief, intended workflows and portfolio goals came from the project owner. Codex authored the implementation, schema, SQL, tests, firmware, documentation and project media and ran the software verification reported here. The interview guide identifies code for the owner to review, reproduce and modify before claiming personal implementation or verification.

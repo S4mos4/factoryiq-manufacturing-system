@@ -51,3 +51,31 @@ Use these as starting points after personal review. Keep the AI-assisted attribu
 - Reproduced an EXPLAIN ANALYZE comparison on 205,000 synthetic events and explained how a partial index reduced a machine-filtered fault query’s median execution from 1.260 ms to 0.045 ms.
 
 The last three bullets describe work to do personally before claiming it.
+
+
+## V2 interview questions
+
+| Question | Explanation to work through |
+| --- | --- |
+| Why use MQTT for sensors? | The broker decouples low-bandwidth producers from the ingestion service. Topic ACLs and payload identity checks both enforce the device boundary. Explain why QoS 1 needs idempotent consumers. |
+| How does offline detection work? | A 12-second heartbeat watchdog records one transition and one open link alarm. A fresh heartbeat restores connectivity. Sample silence can indicate device, network or gateway trouble. |
+| Why use SSE for the monitoring screen? | Sensor state flows from server to browser. Same-origin streaming uses the same auth rules and a regular HTTP write endpoint for commands. |
+| Why use two reading keys? | Device/UUID catches MQTT replay. Device/observation time and locked overlap checks prevent two messages from double-counting one production interval. |
+| What makes the twin interactive? | Each station maps to a persistent device and equipment record. Live state drives the station badges and conveyor animation. Selecting a station loads its history, alarms and service data. |
+| What is the difference between anomaly detection and failure prediction? | The query compares temperature, vibration and current with a preceding baseline and fixed thresholds. It can flag a deviation. It has no labelled failure training or physical validation. |
+| What changes if quality or runtime is missing? | The data model preserves missing values. A temperature-only device has no defensible OEE. Coverage prevents confusing a partial sample window with a full shift. |
+| How do you connect and calibrate the sensor board? | Describe I²C, a signed register value, gravity removal for accelerometer RMS, and reed-switch debounce. Then explain TLS, reference instruments and why firmware build success does not validate the circuit. |
+
+## V2 tasks to complete personally
+
+- Replay the same QoS 1 message twice and inspect the constraints and SQL transaction. Capture a broker trace showing receipt and acknowledgement.
+- Build the ESP32, confirm its bench wiring with a multimeter, and compare temperature measurements with a reference at two stable temperatures.
+- Measure proximity counts over 20 controlled events. Change the debounce window and explain its impact on counting accuracy.
+- Reproduce the telemetry benchmark across a second device or window, compare the actual plans, and explain why decode-to-commit throughput excludes MQTT transit.
+- Hand-calculate OEE for the test fixture and explain coverage, null values, and the distinction between alarm acknowledgement and repair.
+
+## V2 résumé wording
+
+- Scoped FactoryIQ V2, an AI-assisted industrial IoT portfolio project combining MQTT telemetry, an interactive digital twin and PostgreSQL equipment analytics.
+- After personal reproduction, describe the broker ACL, replay handling and alarm lifecycle you independently verified.
+- After bench validation, describe the sensors you wired, firmware you flashed, and calibration measurements you recorded.

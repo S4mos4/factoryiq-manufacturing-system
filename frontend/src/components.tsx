@@ -2,13 +2,14 @@ import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } fr
 import { ArrowDown, ArrowUp, ChevronsUpDown, CircleAlert, Database, Search, X } from 'lucide-react';
 import { api, label, text, type RecordRow } from './api';
 
-export function useData<T>(path: string, token: string, version = 0) {
+export function useData<T>(path: string | null, token: string, version = 0) {
   const [state,setState] = useState<{data?:T; error?:string}>({});
   const lastRequest = useRef({path,token});
   useEffect(() => {
     const controller = new AbortController();
     if (lastRequest.current.path !== path || lastRequest.current.token !== token) setState({});
     lastRequest.current = {path,token};
+    if (path === null) return;
     api<T>(path,token,{signal:controller.signal})
       .then(data => setState({data}))
       .catch((error: Error) => { if (!controller.signal.aborted) setState({error:error.message}); });

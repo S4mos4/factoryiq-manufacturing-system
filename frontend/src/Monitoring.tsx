@@ -10,7 +10,7 @@ type Device = {id:string; equipment_id:number; equipment_code:string; station_na
 type Reading = RecordRow & {device_id:string; observed_at:string; status:string};
 type Alarm = RecordRow & {id:number; device_id:string; code:string; severity:string; acknowledged_at:string|null};
 type Snapshot = {devices:Device[]; readings:Reading[]; alarms:Alarm[]};
-type DeviceDetail = {history:Reading[]; performance:RecordRow; condition:RecordRow[]; alarms:Alarm[];
+type DeviceDetail = {device:Device; history:Reading[]; performance:RecordRow; condition:RecordRow[]; alarms:Alarm[];
   maintenance:RecordRow[]; connections:RecordRow[]; thresholds:RecordRow[]};
 
 const measures = [
@@ -94,9 +94,10 @@ export function Monitoring({token,canWrite,navigate}: {token:string;canWrite:boo
   const readings=new Map(value?.readings.map(r=>[r.device_id,r]));
   const active=value?.alarms.filter(a=>a.device_id===selected?.id)??[];
   const live=selected?readings.get(selected.id):undefined;
-  const {data:detail,error}=useData<DeviceDetail>(
-    selected?`/iot/devices/${selected.id}?minutes=${window}`:'/iot/snapshot',token,revision,
+  const {data,error}=useData<DeviceDetail>(
+    selected?`/iot/devices/${selected.id}?minutes=${window}`:null,token,revision,
   );
+  const detail=data?.device.id===selected?.id ? data : undefined;
   useEffect(()=>{
     if(!selected)return;
     const timer=setInterval(()=>refresh(n=>n+1),7500);
@@ -146,7 +147,7 @@ export function Monitoring({token,canWrite,navigate}: {token:string;canWrite:boo
       </div>
       {notice&&<div className="notice" role="status">{notice}</div>}
       <Feedback error={error} loading={!detail&&!error}/>
-      <div className="iot-metrics" aria-label="Live sensor readings">
+      <div className="iot-metrics" role="region" aria-label="Live sensor readings">
         {measures.map(([key,title,unit,Icon])=><article key={key} className="card iot-metric">
           <header><span>{title}</span><Icon size={16}/></header>
           <strong>{selected.connected?units(live?.[key],unit):'Unavailable'}</strong>

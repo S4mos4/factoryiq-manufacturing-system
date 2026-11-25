@@ -21,7 +21,7 @@ def record_alarm_history(conn, alarm_id, action, actor=None):
           id=alarm_id,action=action,actor=actor)
 
 
-def reconcile_alarms(conn, device, stamp, scope, signals, consecutive=2):
+def reconcile_alarms(conn, device, stamp, scope, signals, consecutive=2, missing=()):
     active = {entry["code"]:entry for entry in rows(conn,"""SELECT id,code,severity,clear_count
              FROM iot_alarms WHERE device_id=:id AND resolved_at IS NULL AND code LIKE :prefix FOR UPDATE""",
              id=device["id"],prefix=scope+"%")}
@@ -43,7 +43,7 @@ def reconcile_alarms(conn, device, stamp, scope, signals, consecutive=2):
                 record_alarm_history(conn,prior["id"],"escalated")
     for code,prior in active.items():
         # A missing sensor sample cannot demonstrate recovery.
-        if code in signals.missing:
+        if code in missing:
             continue
         if prior["clear_count"]+1 >= consecutive:
             query(conn,"UPDATE iot_alarms SET resolved_at=greatest(first_at,:stamp) WHERE id=:id",
@@ -51,12 +51,6 @@ def reconcile_alarms(conn, device, stamp, scope, signals, consecutive=2):
             record_alarm_history(conn,prior["id"],"resolved")
         else:
             query(conn,"UPDATE iot_alarms SET clear_count=clear_count+1 WHERE id=:id",id=prior["id"])
-
-
-class Signals(dict):
-    def __init__(self, values=(), missing=()):
-        super().__init__(values)
-        self.missing = set(missing)
 
 
 def save_reading(message):
@@ -84,14 +78,15 @@ def save_reading(message):
         query(conn,"UPDATE iot_devices SET last_reading_at=:stamp WHERE id=:id",
               stamp=message.observed_at,id=message.device_id)
         thresholds = rows(conn,"SELECT metric,warning,critical FROM iot_thresholds WHERE device_id=:id",id=message.device_id)
-        signals = Signals(missing=("threshold:"+metric for metric in METRICS if getattr(message,metric) is None))
+        signals = {}
+        missing = {"threshold:"+metric for metric in METRICS if getattr(message,metric) is None}
         for rule in thresholds:
             value = getattr(message,rule["metric"])
             if value is not None and value >= rule["warning"]:
                 signals["threshold:"+rule["metric"]] = "critical" if value >= rule["critical"] else "warning"
-        reconcile_alarms(conn,device,message.observed_at,"threshold:",signals)
+        reconcile_alarms(conn,device,message.observed_at,"threshold:",signals,missing=missing)
         reconcile_alarms(conn,device,message.observed_at,"fault:",
-                         Signals({f"fault:{message.fault}":"critical"} if message.fault else {}),consecutive=1)
+                         {f"fault:{message.fault}":"critical"} if message.fault else {},consecutive=1)
         return "accepted"
 
 
@@ -99,7 +94,7 @@ def set_connectivity(conn, device, online, at):
     query(conn,"UPDATE iot_devices SET connected=:online WHERE id=:id",id=device["id"],online=online)
     query(conn,"INSERT INTO iot_connections (device_id,online,changed_at) VALUES (:id,:online,:at)",
           id=device["id"],online=online,at=at)
-    reconcile_alarms(conn,device,at,"link:",Signals({} if online else {"link:offline":"warning"}),consecutive=1)
+    reconcile_alarms(conn,device,at,"link:",{} if online else {"link:offline":"warning"},consecutive=1)
 
 
 def save_heartbeat(message):

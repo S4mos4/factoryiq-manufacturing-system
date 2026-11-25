@@ -1,0 +1,31 @@
+import { expect, test } from '@playwright/test';
+
+test('live telemetry, twin selection and simulated fault through MQTT',async ({page})=>{
+  const token=process.env.FACTORYIQ_OPERATOR_TOKEN;
+  if(!token)throw new Error('FACTORYIQ_OPERATOR_TOKEN must target the test instance.');
+  await page.goto('/');
+  await page.getByRole('button',{name:'Operator access'}).click();
+  await page.getByLabel('Operator token').fill(token);
+  await page.getByRole('button',{name:'Unlock'}).click();
+  await expect(page.getByRole('button',{name:'Lock operator'})).toBeVisible();
+  await page.getByRole('navigation').getByRole('button',{name:'Live monitoring'}).click();
+  await expect(page.getByText('Live telemetry',{exact:true})).toBeVisible();
+  const sorter=page.getByRole('button',{name:/Vision sorter/});
+  await expect(sorter).toContainText('Running',{timeout:15000});
+  await sorter.click();
+  await expect(page.getByRole('heading',{name:'Vision sorter',exact:true})).toBeVisible();
+  await expect(page.getByRole('region',{name:'Live sensor readings'}).getByText(/°C/)).toBeVisible();
+  await page.getByRole('button',{name:'Simulate fault',exact:true}).click();
+  await page.getByLabel('Fault',{exact:true}).selectOption('overheat');
+  await page.getByRole('button',{name:'Apply simulation'}).click();
+  await expect(sorter).toContainText('Fault',{timeout:15000});
+  const openAlarms=page.locator('section').filter({has:page.getByRole('heading',{name:'Active alarms',exact:true})});
+  const fault=openAlarms.getByRole('row').filter({hasText:'Overheat'});
+  await fault.getByRole('button',{name:'Details'}).click();
+  await page.getByRole('button',{name:'Acknowledge alarm'}).click();
+  await expect(fault).not.toContainText('Pending');
+  await page.getByRole('button',{name:'Simulate fault',exact:true}).click();
+  await page.getByLabel('Fault',{exact:true}).selectOption('normal');
+  await page.getByRole('button',{name:'Apply simulation'}).click();
+  await expect(sorter).toContainText('Running',{timeout:15000});
+});

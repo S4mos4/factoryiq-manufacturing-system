@@ -18,7 +18,10 @@ from .store import record_alarm_history
 
 router = APIRouter(prefix="/api/iot",dependencies=[Depends(read_access)],tags=["Equipment monitoring"])
 Window = Annotated[int, Query(ge=1,le=1440)]
-DEVICE = """SELECT d.*,e.code AS equipment_code,e.status AS maintenance_status
+DEVICE = """SELECT d.id,d.equipment_id,d.station_name,d.station_order,d.simulated,d.ideal_cycle_seconds,
+                   d.last_heartbeat_at,d.last_reading_at,
+                   d.connected AND d.last_heartbeat_at>now()-interval '12 seconds' AS connected,
+                   e.code AS equipment_code,e.status AS maintenance_status
             FROM iot_devices d JOIN equipment e ON e.id=d.equipment_id
             WHERE (NOT :synthetic OR d.simulated)"""
 

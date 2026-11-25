@@ -78,7 +78,3 @@ Key PostgreSQL features include composite foreign keys, check constraints, parti
 [Verified GitHub Actions run](https://github.com/S4mos4/factoryiq-manufacturing-system/actions/runs/45510255118) · [Local development and hosting](docs/DEPLOYMENT.md) · [Security review](docs/security_best_practices_report.md) · [Interview guide](INTERVIEW_GUIDE.md) · [SQL practice](docs/SQL_PRACTICE.md) · [Project checkpoint](PROGRESS.md)
 
 FactoryIQ is a single-plant portfolio system. It uses a shared demo operator identity, part-level inventory without lot genealogy, and calendar-time availability without shift calendars. The default data volumes suit a demonstration. The sorter analytics depend on recorded trace timing and observed repairs. Public deployment, access policies and production capacity need separate verification.
-
-## AI assistance
-
-The project brief, intended workflows and portfolio goals came from the project owner. Codex authored the implementation, schema, SQL, tests, firmware, documentation and project media and ran the software verification reported here. The interview guide identifies code for the owner to review, reproduce and modify before claiming personal implementation or verification.

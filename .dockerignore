@@ -10,3 +10,7 @@ frontend/dist
 frontend/test-results
 **/__pycache__
 **/.pytest_cache
+
+# Firmware builds and local toolchains are outside the application image.
+hardware
+.venv
